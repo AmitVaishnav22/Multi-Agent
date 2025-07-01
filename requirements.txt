@@ -4,3 +4,4 @@ pymongo
 langchain
 openai
 crewai
+dotenv

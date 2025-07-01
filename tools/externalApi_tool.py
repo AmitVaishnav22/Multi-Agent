@@ -16,7 +16,7 @@ class ExternalApiTool:
             "enquiry_id": str(uuid.uuid4()),
             "name": name,
             "email": email,
-            "phone": ohone,
+            "phone": phone,
             "status": "new",
             "created_at": datetime.datetime.now().isoformat(),
         }
