@@ -9,21 +9,11 @@ Agents process user prompts and intelligently fetch or modify data using MongoDB
 
 ---
 
-## Architecture
-```mermaid
-graph LR
-    A[User Prompt] --> B{Router (/query)}
-    B --> C[SupportAgent]
-    B --> D[DashboardAgent]
-    C --> E[MongoDBTool + ExternalAPI]
-    D --> F[MongoDBTool (Aggregations)]
-    E --> G[(MongoDB)]
-    F --> G
-```
+## High Level Design - Architecture
+![alt text](image.png)
 
----
 
-## 🚀Tech Stack
+## Tech Stack
 
 | Category      | Tools Used                  |
 | ------------- | --------------------------- |
