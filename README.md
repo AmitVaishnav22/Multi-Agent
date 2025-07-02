@@ -10,7 +10,6 @@ Agents process user prompts and intelligently fetch or modify data using MongoDB
 ---
 
 ## Architecture
-
 ```mermaid
 graph LR
     A[User Prompt] --> B{Router (/query)}
