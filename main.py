@@ -7,6 +7,7 @@ from tools.mongodb_tool import MongoDBTool
 from tools.externalApi_tool import ExternalApiTool
 from agents.support_agent import SupportAgent
 from pymongo.errors import PyMongoError
+from agents.dashboard_agent import DashboardAgent
 
 # Load environment variables from .env
 load_dotenv()
@@ -52,6 +53,19 @@ async def handle_query(prompt: str = Body(..., embed=True)):
     """
     try:
         result = support_agent.handle_client_query(prompt)
+        return {"response": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"❌ Internal Error: {str(e)}")
+
+# Dashboard analytics
+@app.post("/dashboard-agent/query")
+async def handle_dashboard_query(prompt: str = Body(..., embed=True)):
+    """
+    Process a natural language prompt using DashboardAgent.
+    """
+    try:
+        dashboard_agent = DashboardAgent(mongo_tool)
+        result = dashboard_agent.handle_query(prompt)
         return {"response": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"❌ Internal Error: {str(e)}")

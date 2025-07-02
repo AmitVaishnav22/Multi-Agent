@@ -20,3 +20,5 @@ class MongoDBTool:
         collection = self.db[collection_name]
         result = collection.insert_one(document)
         return result.inserted_id
+
+        
