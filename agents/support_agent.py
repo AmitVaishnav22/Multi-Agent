@@ -20,7 +20,7 @@ class SupportAgent:
         """
         self.db_tool = db_tool
         self.api_tool = api_tool
-        self.translator = Translator()
+        # self.translator = Translator()
 
     def translate_prompt(self, prompt: str) -> str:
         try:
