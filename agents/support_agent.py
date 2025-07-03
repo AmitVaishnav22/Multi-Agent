@@ -35,7 +35,7 @@ class SupportAgent:
         Routes prompt to appropriate functionality based on keyword match.
         """
         prompt = self.translate_prompt(prompt)
-        print(prompt)
+        #print(prompt)
 
         if "create an order" in prompt:
             return self.create_order_flow(prompt)
