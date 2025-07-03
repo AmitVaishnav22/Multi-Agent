@@ -1,6 +1,6 @@
 import re
 from datetime import datetime
-from googletrans import Translator
+# from googletrans import Translator
 
 class SupportAgent:
     """
