@@ -34,8 +34,10 @@ class SupportAgent:
         Main dispatcher to handle natural language client queries.
         Routes prompt to appropriate functionality based on keyword match.
         """
-        prompt = self.translate_prompt(prompt)
+        #prompt = self.translate_prompt(prompt)
         #print(prompt)
+
+        prompt = prompt.lower().strip()
 
         if "create an order" in prompt:
             return self.create_order_flow(prompt)
