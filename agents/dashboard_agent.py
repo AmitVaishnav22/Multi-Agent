@@ -42,30 +42,38 @@ class DashboardAgent:
         """
         Returns the total revenue by summing all 'paid' values in the 'payments' collection.
         """
-        pipeline = [
-            {"$group": {"_id": None, "total": {"$sum": "$paid"}}}
-        ]
-        result = self.db.aggregate("payments", pipeline)
-        total = result[0]["total"] if result else 0
-        return {"total_revenue": total}
+        try:
+            pipeline = [
+                {"$group": {"_id": None, "total": {"$sum": "$paid"}}}
+            ]
+            #print(pipeline)
+            result = self.db.aggregate("payments", pipeline)
+            #print(result)
+            total = result[0]["total"] if result else 0
+            return {"total_revenue": total}
+        except Exception as e:
+            return {"error": f"An error occurred while calculating total revenue: {str(e)}"}
 
     def outstanding_payments(self):
         """
         Calculates outstanding payments by comparing order amount vs paid amount.
         """
-        orders = self.db.find("orders", {})
-        payments = self.db.find("payments", {})
+        try:
+            orders = self.db.find("orders", {})
+            payments = self.db.find("payments", {})
 
-        paid_map = {p["order_id"]: p["paid"] for p in payments}
-        dues = 0
+            paid_map = {p["order_id"]: p["paid"] for p in payments}
+            dues = 0
 
-        for order in orders:
-            amount = order.get("amount", 0)
-            paid = paid_map.get(order["order_id"], 0)
-            if paid < amount:
-                dues += (amount - paid)
+            for order in orders:
+                amount = order.get("amount", 0)
+                paid = paid_map.get(order["order_id"], 0)
+                if paid < amount:
+                    dues += (amount - paid)
 
-        return {"outstanding_dues": dues}
+            return {"outstanding_dues": dues}
+        except Exception as e:
+            return {"error": f"An error occurred while calculating outstanding payments: {str(e)}"}
 
     # ----------------------------------------
     # Client Insights
@@ -75,33 +83,42 @@ class DashboardAgent:
         """
         Returns the number of clients whose status is marked as 'inactive'.
         """
-        clients = self.db.find("clients", {"status": "inactive"})
-        return {"inactive_clients": len(clients)}
+        try:
+            clients = self.db.find("clients", {"status": "inactive"})
+            return {"inactive_clients": len(clients)}
+        except Exception as e:
+            return {"error": f"An error occurred while fetching inactive clients: {str(e)}"}
 
     def birthday_reminders(self):
         """
         Returns clients who have birthdays today, matching on MM-DD format in 'dob'.
         """
-        today = datetime.today()
-        this_month = today.month
-        this_day = today.day
+        try:
+            today = datetime.today()
+            this_month = today.month
+            this_day = today.day
 
-        clients = self.db.find("clients", {
-            "dob": {
-                "$regex": f"-{this_month:02d}-{this_day:02d}$"
-            }
-        })
-        return {"birthdays_today": [c["name"] for c in clients]}
+            clients = self.db.find("clients", {
+                "dob": {
+                    "$regex": f"-{this_month:02d}-{this_day:02d}$"
+                }
+            })
+            return {"birthdays_today": [c["name"] for c in clients]}
+        except Exception as e:
+            return {"error": f"An error occurred while fetching birthday reminders: {str(e)}"}
 
     def new_clients_this_month(self):
         """
         Returns the count of clients created since the first of the current month.
         """
-        first_day = datetime.today().replace(day=1)
-        clients = self.db.find("clients", {
-            "created_at": {"$gte": first_day.isoformat()}
-        })
-        return {"new_clients": len(clients)}
+        try:
+            first_day = datetime.today().replace(day=1)
+            clients = self.db.find("clients", {
+                "created_at": {"$gte": first_day.isoformat()}
+            })
+            return {"new_clients": len(clients)}
+        except Exception as e:
+            return {"error": f"An error occurred while fetching new clients: {str(e)}"}
 
     # ----------------------------------------
     # Service Analytics
@@ -111,35 +128,44 @@ class DashboardAgent:
         """
         Aggregates and returns count of enrollments (orders) by service_name.
         """
-        pipeline = [
-            {"$group": {"_id": "$service_name", "count": {"$sum": 1}}},
-            {"$sort": {"count": -1}}
-        ]
-        result = self.db.aggregate("orders", pipeline)
-        return {"enrollment_trends": result}
+        try:
+            pipeline = [
+                {"$group": {"_id": "$service_name", "count": {"$sum": 1}}},
+                {"$sort": {"count": -1}}
+            ]
+            result = self.db.aggregate("orders", pipeline)
+            return {"enrollment_trends": result}
+        except Exception as e:
+            return {"error": f"An error occurred while calculating enrollment trends: {str(e)}"}
 
     def top_services(self):
         """
         Returns the top 3 most enrolled services based on order count.
         """
-        pipeline = [
-            {"$group": {"_id": "$service_name", "count": {"$sum": 1}}},
-            {"$sort": {"count": -1}},
-            {"$limit": 3}
-        ]
-        result = self.db.aggregate("orders", pipeline)
-        return {"top_services": result}
+        try:
+            pipeline = [
+                {"$group": {"_id": "$service_name", "count": {"$sum": 1}}},
+                {"$sort": {"count": -1}},
+                {"$limit": 3}
+            ]
+            result = self.db.aggregate("orders", pipeline)
+            return {"top_services": result}
+        except Exception as e:
+            return {"error": f"An error occurred while fetching top services: {str(e)}"}
 
     def course_completion_rates(self):
         """
         Returns a list of courses with their respective completion rates.
         """
-        courses = self.db.find("courses", {})
-        completions = [
-            {"course": c["title"], "completion_rate": c.get("completion_rate", 0)}
-            for c in courses
-        ]
-        return {"completion_rates": completions}
+        try:
+            courses = self.db.find("courses", {})
+            completions = [
+                {"course": c["title"], "completion_rate": c.get("completion_rate", 0)}
+                for c in courses
+            ]
+            return {"completion_rates": completions}
+        except Exception as e:
+            return {"error": f"An error occurred while calculating course completion rates: {str(e)}"}
 
     # ----------------------------------------
     # Attendance Reports
@@ -149,30 +175,36 @@ class DashboardAgent:
         """
         Calculates attendance percentage for a given class using records in 'attendance'.
         """
-        import re
-        match = re.search(r'attendance percentage for ([\w\s]+)', prompt)
-        class_name = match.group(1).strip() if match else None
+        try:
+            import re
+            match = re.search(r'attendance percentage for ([\w\s]+)', prompt)
+            class_name = match.group(1).strip() if match else None
 
-        if not class_name:
-            return {"error": "Class name not specified"}
+            if not class_name:
+                return {"error": "Class name not specified"}
 
-        records = self.db.find("attendance", {"class": {"$regex": class_name, "$options": "i"}})
-        total = len(records)
-        present = sum(1 for r in records if r.get("present") is True)
-        percent = round((present / total) * 100, 2) if total else 0
+            records = self.db.find("attendance", {"class": {"$regex": class_name, "$options": "i"}})
+            total = len(records)
+            present = sum(1 for r in records if r.get("present") is True)
+            percent = round((present / total) * 100, 2) if total else 0
 
-        return {"class": class_name, "attendance_percentage": percent}
+            return {"class": class_name, "attendance_percentage": percent}
+        except Exception as e:
+            return {"error": f"An error occurred while calculating attendance: {str(e)}"}
 
     def drop_off_rates(self):
         """
         Counts how many clients have missed 2 or more sessions (drop-off risk).
         """
-        records = self.db.find("attendance", {})
-        dropout_map = {}
-        for r in records:
-            cid = r.get("client_id")
-            if r.get("present") is False:
-                dropout_map[cid] = dropout_map.get(cid, 0) + 1
+        try:
+            records = self.db.find("attendance", {})
+            dropout_map = {}
+            for r in records:
+                cid = r.get("client_id")
+                if r.get("present") is False:
+                    dropout_map[cid] = dropout_map.get(cid, 0) + 1
 
-        drop_count = sum(1 for c in dropout_map.values() if c >= 2)
-        return {"drop_off_count": drop_count}
+            drop_count = sum(1 for c in dropout_map.values() if c >= 2)
+            return {"drop_off_count": drop_count}
+        except Exception as e:
+            return {"error": f"An error occurred while calculating drop-off rates: {str(e)}"}

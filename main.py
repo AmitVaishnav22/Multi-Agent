@@ -26,7 +26,7 @@ app = FastAPI(
 # Allow frontend apps to access this API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Change to frontend domain in prod
+    allow_origins=["*"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -38,7 +38,7 @@ try:
     external_api = ExternalApiTool()
     support_agent = SupportAgent(mongo_tool, external_api)
 except PyMongoError as e:
-    raise RuntimeError(f"❌ Could not initialize DB tools: {e}")
+    raise RuntimeError(f"Could not initialize DB tools: {e}")
 
 # Health check
 @app.get("/ping")
@@ -55,7 +55,7 @@ async def handle_query(prompt: str = Body(..., embed=True)):
         result = support_agent.handle_client_query(prompt)
         return {"response": result}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"❌ Internal Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal Error: {str(e)}")
 
 # Dashboard analytics
 @app.post("/dashboard-agent/query")
@@ -68,4 +68,4 @@ async def handle_dashboard_query(prompt: str = Body(..., embed=True)):
         result = dashboard_agent.handle_query(prompt)
         return {"response": result}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"❌ Internal Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal Error: {str(e)}")
